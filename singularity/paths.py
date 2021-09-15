@@ -8,11 +8,9 @@ ACCOUNTS = BASEDIR + 'Accounts/'
 BINARIES = BASEDIR + 'Binaries/'
 LANGUAGES = BASEDIR + 'Languages/' if not os.path.exists(HOME + '/.Polarity/Languages/') else HOME + '/.Polarity/Languages/'
 LOGS = BASEDIR + 'Logs/'
-# TEMP = BASEDIR + 'Temp/'
-TEMP = r'Z:\TEMP\\'
+TEMP = BASEDIR + 'Temp/'
 
-# DOWNLOADS = HOME + '/Singularity Downloads/'
-DOWNLOADS = r'Z:\DOWNLOADS\\'
+DOWNLOADS = HOME + '/Singularity Downloads/'
 
 # Set common file paths
 CONFIGURATION_FILE = BASEDIR + 'Singularity.toml'
