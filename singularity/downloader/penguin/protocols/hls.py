@@ -23,6 +23,7 @@ class HTTPLiveStream(StreamProtocol):
         }
         if self.parsed_data['is_variant']:
             # Get preferred resolution stream
+            vprint(lang['penguin']['protocols']['picking_best_stream_0'], 3, 'penguin/hls', 'debug')
             self.resolutions = [
                 (s, int(s['stream_info']['resolution'].split('x')[1] if 'resolution' in s['stream_info'] else 0))
                 for s in self.parsed_data['playlists']
@@ -31,10 +32,12 @@ class HTTPLiveStream(StreamProtocol):
             self.streams = [s for s in self.resolutions if s[1] == self.resolution[1]]
             # Pick higher bitrate stream
             if len(self.streams) > 1:
+                vprint(lang['penguin']['protocols']['picking_best_stream_1'], 3, 'penguin/hls', 'debug')
                 self.bandwidth_values = [s[0]['stream_info']['bandwidth'] for s in self.streams]
                 self.stream = self.streams[self.bandwidth_values.index(max(self.bandwidth_values))][0]
             else:
                 self.stream = self.streams[0][0]
+            vprint(lang['penguin']['protocols']['selected_stream'] % self.stream['BaseURL'], 3, 'penguin/dash', 'debug')
         else:
             self.stream = self.parsed
             

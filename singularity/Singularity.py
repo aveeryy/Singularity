@@ -86,7 +86,8 @@ class Singularity:
             download_languages(self.options['install_languages'])
             os._exit(0)
 
-        self.mode = self.options['mode']
+        # Too lazy to remove identation
+        self.mode = 'download'
         if self.mode == 'download':
             '''
             Download mode
@@ -129,74 +130,6 @@ class Singularity:
                     continue
                 break
             vprint(lang['polarity']['all_tasks_finished'])
-        elif self.mode == 'search':
-            '''
-            Search mode
-            Searchs for media content in supported extractors
-            Input: words
-            Output: results formatted `type - name (download_id)`
-            '''
-            if not self.options['search_extractor']:
-                vprint(lang['singularity']['search_no_extractor'], 1, error_level='error')
-                os._exit(0)
-            extractor = EXTRACTORS[self.options['search_extractor']]
-            if not hasattr(extractor[1], 'search'):
-                # TODO: better error handling lol
-                raise Exception
-            # Join all search terms in a string
-            search_term = ' '.join(self.url_pool)
-            vprint(lang['singularity']['search_term'] + search_term, 3, error_level='debug')
-            results = extractor[1]().search(search_term)
-            if not results:
-                vprint(lang['singularity']['search_no_results'], 1, error_level='error')
-                os._exit(1)
-            for result in results:
-                if 'search_max_length' in self.options and self.options['search_max_length']:
-                    # Limit name length if specified in settings
-                    self.options['search_max_length'] = int(self.options['search_max_length'])
-                    if len(result.name) > self.options['search_max_length']:
-                        result.name = result.name[:self.options['search_max_length']] + '...'
-                print(f'{result.type.__name__} - {result.name} ({result.id})')
-        elif self.mode == 'live_tv':
-            '''
-            Live TV mode
-            Prints bare m3u8 playlist url, allowing it to be used with
-            mpv or vlc for watching, ffmpeg for recording...
-            Input: slightly modified download id `extractor/live-name`
-            Output: m3u8 playlist `https://example.com/playlist.m3u8`
-            '''
-            channel = self.url_pool[0]
-            parsed = parse_download_id(id=channel)
-            print(EXTRACTORS[parsed.extractor][1].get_live_stream(parsed.id))
-            os._exit(0)
-        elif self.mode == 'print':
-            '''
-            Print mode
-            Prints useful information
-            Input: terms via the --printer argument
-            Output: requested information
-            '''
-            def mprint(msg: str):
-                'Print a small identifier if more than one information type is requested'
-                if multi_print:
-                    print(f'======={msg}=======')
-            multi_print = len(self.options['printer']) > 1
-            if 'urls' in self.options['printer']:
-                mprint('URLs')
-                print('\n'.join(self.url_pool))
-            if 'options' in self.options['printer']:
-                mprint('OPTIONS')
-                pprint(self.options)
-            if 'lang' in self.options['printer']:
-                mprint('LANGUAGE')
-                pprint(lang)
-            if 'live_channels' in self.options['printer']:
-                mprint('LIVE_CHANNELS')
-                for extractor in EXTRACTORS.values():
-                    if hasattr(extractor[1], 'LIVE_CHANNELS'):
-                        for channel in extractor[1].LIVE_CHANNELS:
-                            print(f'{extractor[0].lower()}/live-{channel}')
-                           
         
     def worker(self):
         '''

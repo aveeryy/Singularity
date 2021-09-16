@@ -95,9 +95,7 @@ except TomlDecodeError as e:
     config = load_config()
 
 # Set verbosity level
-if any(a in sys.argv for a in ('--mode', '-m')) and any(a in sys.argv for a in ('print', 'live_tv')):
-    verbose_level = 0
-elif any(a in sys.argv for a in ('-v', '--verbose')):
+if any(a in sys.argv for a in ('-v', '--verbose')):
     __arg = '-v' if '-v' in sys.argv else '--verbose'
     verbose_level = int(sys.argv[sys.argv.index(__arg) + 1])
 elif 'verbose' in config:

@@ -27,6 +27,7 @@ class Browser:
             self.capabilities['goog:loggingPrefs'] = {'browser': 'ALL', 'performance': 'ALL'}
             self.chrome_options = ChromeOptions()
             self.chrome_options.add_argument('--mute-audio')
+            self.chrome_options.add_argument('--log-level=3')
             # Load widevine L3 decryptor extension
             self.chrome_options.add_extension(BINARIES + 'widevine.crx')
 

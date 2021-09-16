@@ -70,7 +70,7 @@ def argument_parser():
     from singularity.downloader import DOWNLOADERS, __DOWNLOADERS__
 
     # Print Singularity version
-    vprint(lang['main']['using_version'] % _version, 3, 'singularity', 'debug')
+    vprint(lang['singularity']['using_version'] % _version, 3, 'singularity', 'debug')
 
     parser = argparse.ArgumentParser(usage=USAGE, description='Singularity %s | https://github.com/Aveeryy/Singularity/' %(_version), prog='Singularity', add_help=False, formatter_class=FORMATTER)
     parser.add_argument('url', help=argparse.SUPPRESS, nargs='*')
@@ -80,15 +80,12 @@ def argument_parser():
     general.add_argument('-h', '--help', '--ayuda', action='store_true', help=lang_help['help'])
     general.add_argument('--extended-help', help=lang_help['extended_help'], action='store_true')
     general.add_argument('-v', '--verbose', choices=['0', '1', '2', '3', '4', '5'], help=lang_help['verbose'], metavar=lang_meta['verbose'])
-    general.add_argument('-m', '--running-mode', '--mode', choices=['download', 'search', 'print', 'live_tv'], default='download')
     general.add_argument('-e', '--search-extractor', help='')
-    general.add_argument('--search-strip-names')
     general.add_argument('--language', help='')
     general.add_argument('--list-languages', action='store_true')
     general.add_argument('--installed-languages', action='store_true')
     general.add_argument('--install-languages', nargs='*')
     general.add_argument('--update-git', action='store_true', help=lang_help['update_git'])
-    general.add_argument('--printer', nargs='*')
 
     # Downloader options
     download = parser.add_argument_group(title=lang_group['download'])
@@ -100,7 +97,6 @@ def argument_parser():
     download.add_argument('--season-format', help=lang_help['format_season'])
     download.add_argument('--episode-format', help=lang_help['format_episode'])
     download.add_argument('--movie-format', help=lang_help['format_movie'])
-    download.add_argument('-d', '--downloader', choices=DOWNLOADERS.keys(), help='Downloader to use')
 
     # Gets all extractors with an ARGUMENTS object and converts their arguments to
     # argparse equivalents.
@@ -132,7 +128,6 @@ def argument_parser():
     add_option(args.verbose, opts, 'verbose')
     add_option(args.resolution, opts['download'], 'resolution')
     add_option(args.redownload, opts['download'], 'redownload')
-    add_option(args.downloader, opts['download'], 'downloader')
     add_option(args.series_dir, opts['download'], 'series_directory')
     add_option(args.movies_dir, opts['download'], 'movies_directory')
     add_option(args.series_format, opts['download'], 'series_format')
@@ -141,15 +136,11 @@ def argument_parser():
     add_option(args.movie_format, opts['download'], 'movie_format')
     add_option(args.series_format, opts['download'], 'series_format')
     add_option(args.dump, opts, 'dump')
-    add_option(args.running_mode, opts, 'mode')
-    add_option(args.search_extractor, opts, 'search_extractor')
-    add_option(args.search_strip_names, opts, 'search_max_length')
     add_option(args.exit_after_dump, opts, 'exit_after_dump')
     add_option(args.install_windows, opts, 'install_windows')
     add_option(args.installed_languages, opts, 'installed_languages')
     add_option(args.list_languages, opts, 'list_languages')
     add_option(args.install_languages, opts, 'install_languages')
-    add_option(args.printer, opts, 'printer')
     # Process downloader and extractor options
     process_arguments()
 

@@ -2,6 +2,7 @@ from singularity.types.stream import Stream
 from urllib import parse
 
 from singularity.browser import get_driver, browser
+from singularity.config import lang
 from singularity.extractor.base import BaseExtractor, ExtractorError
 from singularity.types import Series, Season, Episode
 from singularity.utils import request_webpage, request_xml, vprint, request_json
@@ -37,12 +38,14 @@ class PrimeVideoExtractor(BaseExtractor):
     }
     
     AUDIO_REGEX = r'(?:/(?:dm|d)/)(?:2\$.+~)'
+
+    ADVERT_REGEX = r'/\d@[0-9a-z]+/'
     
     @classmethod
     def return_class(self): return __class__.__name__
 
     # TODO
-    def is_logged_in(self, ): return True
+    def is_logged_in(self, ): return self.cookie_exists('session-token')
 
     def load_at_init(self):
         # Disable autoplay
@@ -160,6 +163,12 @@ class PrimeVideoExtractor(BaseExtractor):
             self.episode.number = raw_info['episodeNumber']
         self.episode.title = raw_info['title']
         
+        vprint(lang['extractor']['get_media_info'] % (
+            lang['types']['alt']['episode'],
+            raw_info['title'],
+            self.episode.id
+        ), 3, 'primevideo')
+        
         self.episode.synopsis = raw_info['synopsis']    
         
         self.driver.get(f'https://primevideo.com/detail/{self.episode.id}?autoplay=1')
@@ -185,10 +194,17 @@ class PrimeVideoExtractor(BaseExtractor):
         # Don't know why it's like that
         # I literally had to use mitmproxy with AnyStream to figure this out lmao
         stream_url = re.sub(self.AUDIO_REGEX, '', stream_url)
+
+        stream_url = re.sub(self.ADVERT_REGEX, '/', stream_url)
+        
+        vprint(f'Stream URL: {stream_url}', 3, 'primevideo', 'debug')
         
         keys_retries = 0
 
+        sleep(5)
+
         while True:
+            vprint(f'Attempting to get keys, attempt {keys_retries}', 3, 'primevideo', 'debug')
             try:
                 keys = browser.get_widevine_keys()
                 self.keys = self.filter_keys(stream_url, keys)
@@ -196,20 +212,24 @@ class PrimeVideoExtractor(BaseExtractor):
             except (KeyError, IndexError):
                 keys_retries += 1
                 # Try to refresh the page in case an error happens
-                if keys_retries == 3:
+                if keys_retries == 7:
                     self.driver.refresh()
-                if keys_retries > 5:
-                    raise Exception
+                if keys_retries >= 10:
+                    vprint('Giving up on key extraction after 10 attempts, skipping...', 1, 'primevideo', 'error')
+                    self.episode.skip_download = 'Failed to get Widevine key'
+                    return self.episode
                 sleep(keys_retries + 0.5)
-
-        print(self.keys)
 
         metadata_names = {}
         metadata_languages = {}
-        
-        for audio in player_info['playbackUrls']['audioTracks']:
-            metadata_names[audio['audioTrackId']] = audio['displayName']
-            metadata_languages[audio['audioTrackId']] = audio['languageCode'][:2]
+        if len(player_info['playbackUrls']['audioTracks']) > 1:
+            for audio in player_info['playbackUrls']['audioTracks']:
+                metadata_names[audio['audioTrackId']] = audio['displayName']
+                metadata_languages[audio['audioTrackId']] = audio['languageCode'][:2]
+        elif len(player_info['playbackUrls']['audioTracks']) == 1:
+            audio = player_info['playbackUrls']['audioTracks'][0]
+            metadata_names['audio'] = audio['displayName']
+            metadata_languages['audio'] = audio['languageCode'][:2]
         
         stream = Stream(stream_url, 'main', True, metadata_names, metadata_languages, self.keys)
         
@@ -227,19 +247,23 @@ class PrimeVideoExtractor(BaseExtractor):
             subt_stream.extra_sub = True
             self.episode.link_stream(subt_stream)
 
+        del self.mpd_playlist
+
         return self.episode
     
-    @staticmethod
-    def filter_keys(manifest_url: str, keys: list):
-        mpd_playlist = request_xml(
-            url=manifest_url
-        )[0]
+    def filter_keys(self, manifest_url: str, keys: list):
+        if not hasattr(self, 'mpd_playlist'):
+            self.mpd_playlist = request_xml(
+                url=manifest_url
+            )[0]
+            
+        vprint('Attempting to match correct kid:key combination', 3, 'primevideo', 'debug')
         
-        for adap_set in mpd_playlist['MPD']['Period']['AdaptationSet']:
+        for adap_set in self.mpd_playlist['MPD']['Period']['AdaptationSet']:
             if adap_set['@contentType'] == 'video':
                 video_key = [c['@cenc:default_KID'] for c in adap_set['ContentProtection'] if '@cenc:default_KID' in c][0]
                 break
-        for adap_set in mpd_playlist['MPD']['Period']['AdaptationSet']:
+        for adap_set in self.mpd_playlist['MPD']['Period']['AdaptationSet']:
             if adap_set['@contentType'] == 'audio':
                 audio_key = [c['@cenc:default_KID'] for c in adap_set['ContentProtection'] if '@cenc:default_KID' in c][0]
                 break

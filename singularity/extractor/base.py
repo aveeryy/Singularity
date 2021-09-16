@@ -88,7 +88,10 @@ class BaseExtractor:
         self.cjar.save(ignore_discard=True, ignore_expires=True)
 
     def cookie_exists(self, cookie_name: str):
-        return bool([c for c in self.cjar if c.name == cookie_name])
+        if 'JSON_COOKIE_JAR' in self.FLAGS:
+            return bool([c for c in self.cjar if c['name'] == cookie_name])
+        else:
+            return bool([c for c in self.cjar if c.name == cookie_name])
 
     def save_json_jar(self):
         with open(ACCOUNTS + f'{self.extractor_name}.cjar', 'w', encoding='utf-8') as c:
