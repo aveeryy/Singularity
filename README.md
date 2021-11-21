@@ -1,7 +1,12 @@
 # Singularity
 > 🔓🔨 Forked version of [Polarity](https://github.com/Aveeryy/Polarity/) with Widevine DRM support. (Requires an external extension to get the keys)
 
-<!---[![DeepSource](https://deepsource.io/gh/Aveeryy/Singularity.svg/?label=active+issues&show_trend=true)](https://deepsource.io/gh/Aveeryy/Singularity/)-->
+> This tool does not circunvent any DRM protections
+
+## Archived
+Too busy to mantain this mess.
+
+May continue it if the current widevine extension still works after i finish the [polarity](https://github.com/Aveeryy/Polarity/) codebase rewrite
 
 ## Features
 - **Widevine L3 support (requires an external extension)**
@@ -11,14 +16,8 @@
 - **Subtitles support**
 - **Custom name formatting**
 - **Multi-threaded downloads**
-<!--- **External downloader support**-->
 ### Other features
 - **Search in supported extractors**
-<!---
-
-- **Automatically download new episodes**
-- **Plex and Kodi Metadata support**
--->
 
 ## Installation
 - ### [Windows Installation <img src="https://aveeryy.github.io/icons/small/Windows.png" alt="Windows" width="16"/>](https://github.com/Aveeryy/Singularity/wiki/Installing#windows-)
