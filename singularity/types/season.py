@@ -1,5 +1,6 @@
 from .base import PolarType
 from .episode import Episode
+
 class Season(PolarType):
     def __init__(self) -> None:
         self.title = None
@@ -9,7 +10,6 @@ class Season(PolarType):
         self.year = 1970
         self.images = []
         self.total_episodes = 0
-        self.available_episodes = 0
         self.finished = False
         self.episodes = []
         self._parent = None

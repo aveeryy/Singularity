@@ -25,7 +25,7 @@ class Stream(PolarType):
         >>> self.name = 'Spanish'
         # Good
         >>> self.name = 'Español'
-    - Languages' codes must be [ISO 639-2 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+    - Languages' codes must be [ISO 639-1 or ISO 639-2 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
     - On extra_* streams 
     '''
     url: str
@@ -34,7 +34,6 @@ class Stream(PolarType):
     name: dict
     language: dict
     key: dict
-
     extra_audio = False
     extra_sub = False
 
@@ -45,6 +44,7 @@ class Segment:
     media_type: type
     key: ContentKey
     group: str
+    duration: float
     init: bool
     ext: str
     mpd_range: None

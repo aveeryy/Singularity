@@ -43,8 +43,7 @@ class PrimeVideoExtractor(BaseExtractor):
     
     @classmethod
     def return_class(self): return __class__.__name__
-
-    # TODO
+ 
     def is_logged_in(self, ): return self.cookie_exists('session-token')
 
     def load_at_init(self):

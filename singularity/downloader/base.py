@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from singularity.config import config, save_config
 from singularity.paths import TEMP
-from singularity.utils import get_extension, sanitize_filename, to_ascii, vprint, recurse_merge_dict
+from singularity.utils import get_extension, sanitize_path, to_ascii, vprint, recurse_merge_dict
 
 class BaseDownloader:
     '''
@@ -42,7 +42,7 @@ class BaseDownloader:
         self.content_name = name
 
         # DO NOT MERGE THIS TO MAIN REPOSITORY
-        self.content_sanitized = to_ascii(sanitize_filename(self.content).strip('?'), False)
+        self.content_sanitized = to_ascii(sanitize_path(self.content).strip('?'), False)
 
         self.output = output
         self.output_path = output.replace(get_extension(output), '')

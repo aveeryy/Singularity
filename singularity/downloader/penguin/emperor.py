@@ -289,7 +289,7 @@ class PenguinDownloader(BaseDownloader):
             '-c',
             'copy',
             '-metadata',
-            'encoding_tool=Polarity %s | Penguin %s' % (
+            'encoding_tool=Singularity %s | Penguin %s' % (
                 __version__, self.__penguin_version__
             )])
         command.append(f'{TEMP}{self.content_sanitized}.mkv')
@@ -328,6 +328,7 @@ class PenguinDownloader(BaseDownloader):
             media_type='subtitles',
             group=subtitle_pool_id,
             key=None,
+            duration=None,
             init=False,
             ext=get_extension(stream.url),
             mpd_range=None
@@ -339,53 +340,46 @@ class PenguinDownloader(BaseDownloader):
         self.stats['inputs'].append(ff_input)
                     
     def create_input(self, pool: SegmentPool, stream: Stream) -> FFmpegInput:
+        def set_metadata(parent: str, child: str, value: str):
+            if parent not in ff_input.metadata:
+                ff_input.metadata[parent] = {}
+            if value is None or not value:
+                return
+            elif type(value) == dict:
+                if parent in value:
+                    value = value[parent]
+                elif pool.track_id in value:
+                    value = value[pool.track_id]
+                else:
+                    return
+            ff_input.metadata[parent][child] = value
+        
         pool_extension = pool.pool_type.ext if pool.pool_type is not None else pool.get_ext_from_segment()
         ff_input = FFmpegInput()
         ff_input.file_path = f'{self.temp_path}/{pool.id}{pool_extension}'.replace('.ttml2', '.srt')
         ff_input.indexes = {
             'file': self.indexes['files'],
-            'v': self.indexes['video'],
-            'a': self.indexes['audio'],
-            's': self.indexes['subtitles'],
+            VIDEO: self.indexes['video'],
+            AUDIO: self.indexes['audio'],
+            SUBTITLES: self.indexes['subtitles'],
         }
         
+        if pool.get_ext_from_segment(0) == '.vtt':
+            ff_input.convert_to_srt = True
+        
         self.indexes['files'] += 1
-        if pool.format in ('video', 'unified'):
-            if type(stream.name) != dict:
-                ff_input.metadata[VIDEO] = {
-                    'title': stream.name,
-                    'language': stream.language
-                }
-            else:
-                ff_input.metadata[VIDEO] = {
-                    'title': stream.name[pool.track_id] if pool.track_id in stream.name else 'video',
-                    'language': stream.language[pool.track_id] if pool.track_id in stream.language else 'video'
-                }     
-            self.indexes['video'] += 1
+        if pool.format in ('video', 'unified'):      
+            self.indexes['video'] += 1      
+            set_metadata(VIDEO, 'title', stream.name)
+            set_metadata(VIDEO, 'language', stream.language)
         if pool.format in ('audio', 'unified'):
             self.indexes['audio'] += 1
-            if type(stream.name) != dict:
-                ff_input.metadata[AUDIO] = {
-                    'title': stream.name,
-                    'language': stream.language
-                }
-            else:
-                ff_input.metadata[AUDIO] = {
-                    'title': stream.name[pool.track_id] if pool.track_id in stream.name else 'audio',
-                    'language': stream.language[pool.track_id] if pool.track_id in stream.language else 'audio'
-                }                
+            set_metadata(AUDIO, 'title', stream.name)
+            set_metadata(AUDIO, 'language', stream.language)            
         if pool.format == 'subtitles':
             self.indexes['subtitles'] += 1
-            if type(stream.name) != dict:
-                ff_input.metadata[SUBTITLES] = {
-                    'title': stream.name,
-                    'language': stream.language
-                }
-            else:
-                ff_input.metadata[SUBTITLES] = {
-                    'title': stream.name[pool.track_id] if pool.track_id in stream.name else 'subtitles',
-                    'language': stream.language[pool.track_id] if pool.track_id in stream.language else 'subtitles'
-                }     
+            set_metadata(SUBTITLES, 'title', stream.name)
+            set_metadata(SUBTITLES, 'language', stream.language)
         ff_input.hls_stream = '.m3u' in stream.url
         return ff_input
         
@@ -502,6 +496,8 @@ class PenguinDownloader(BaseDownloader):
                                 end = re.search(r'end="([\d:.]+)"', p).group(1).replace('.', ',')
                                 contents = re.search(r'>(.+)</p>', p).group(1).replace('<br />', '\n')
                                 contents = re.sub(r'<(|/)span>', '', p)
+                                contents = contents.replace('&gt;', '')
+                                contents = contents.strip()
                                 subrip_contents += f'{i}\n{begin} --> {end}\n{contents}\n\n'
                                 i += 1
                             segment_contents = subrip_contents.encode()

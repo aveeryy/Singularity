@@ -99,7 +99,7 @@ def threaded_vprint(*args, lock, **kwargs):
 
 # String manipulation stuff
 
-def sanitize_filename(filename=str, directory_replace=False):
+def sanitize_path(filename=str, directory_replace=False):
     replace_win32 = {
         '|': 'ꟾ',
         '<': '˂',
@@ -126,8 +126,8 @@ def sanitize_filename(filename=str, directory_replace=False):
 def sanitized_file_exists(file_path=str):
 
     file_dir = os.path.dirname(file_path) + '/'
-    sanitized_path = sanitize_filename(file_dir, directory_replace=True)
-    sanitized_filename = sanitize_filename(os.path.basename(file_path))
+    sanitized_path = sanitize_path(file_dir, directory_replace=True)
+    sanitized_filename = sanitize_path(os.path.basename(file_path))
     sanitized = os.path.join(sanitized_path, sanitized_filename)
     if os.path.exists(file_path):
         return True

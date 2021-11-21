@@ -16,7 +16,7 @@ from singularity.downloader import DOWNLOADERS
 from singularity.extractor import EXTRACTORS
 from singularity.paths import DOWNLOAD_LOG, LANGUAGES
 from singularity.types import *
-from singularity.utils import filename_datetime, get_compatible_extractor, is_download_id, parse_download_id, request_webpage, sanitize_filename, sanitized_file_exists, vprint, recurse_merge_dict, normalize_integer
+from singularity.utils import filename_datetime, get_compatible_extractor, is_download_id, parse_download_id, request_webpage, sanitize_path, sanitized_file_exists, vprint, recurse_merge_dict, normalize_integer
 from singularity.update import windows_install, download_languages
 from singularity.version import __version__
 
@@ -304,7 +304,7 @@ class Singularity:
                 i=content_info.id,
                 y=content_info.year)
             # Sanitize series directory
-            series_directory = sanitize_filename(series_directory, True)
+            series_directory = sanitize_path(series_directory, True)
             for season in content_info.seasons:
                 # Format season output directory
                 season_directory = self.options['download']['season_format'].format(
@@ -315,7 +315,7 @@ class Singularity:
                     sn=normalize_integer(season.number),
                     Sn=season.number)
                 # Sanitize season directory
-                season_directory = sanitize_filename(season_directory, True)
+                season_directory = sanitize_path(season_directory, True)
                 for episode in season.episodes:
                     if type(episode) == Episode and not episode.movie:
                         # Format episode output name
@@ -331,7 +331,7 @@ class Singularity:
                             en=normalize_integer(episode.number))
                         # Sanitize filename
                         episode.season_id = f'S{normalize_integer(season.number)}E{normalize_integer(episode.number)}'
-                        output_name = sanitize_filename(output_name)
+                        output_name = sanitize_path(output_name)
                         # Join all paths
                         output_path = os.path.join(
                             self.options['download']['series_directory'],
@@ -346,7 +346,7 @@ class Singularity:
                             E=episode.title,
                             i=episode.id,
                             Y=episode.year)
-                        output_name = sanitize_filename(output_name)
+                        output_name = sanitize_path(output_name)
                         output_path = os.path.join(
                             self.options['download']['movies_directory'],
                             output_name
@@ -361,7 +361,7 @@ class Singularity:
                 E=content_info.title,
                 i=content_info.id,
                 Y=content_info.year)
-            output_name = sanitize_filename(output_name)
+            output_name = sanitize_path(output_name)
             print(output_name)
             output_path = os.path.join(
                 self.options['download']['movies_directory'],
